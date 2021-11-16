@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const _ = require('underscore');
+const _   = require('underscore');
+
 require("dotenv").config();
 
 module.exports = (req, res, next) => {

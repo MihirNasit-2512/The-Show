@@ -1,8 +1,8 @@
 const express = require('express');
-const router = express.Router();
+const router  = express.Router();
 const control = require('../controller/show');
-const epi = require('../controller/episode');
-const auth = require('../middleware/auth');
+const epi     = require('../controller/episode');
+const auth    = require('../middleware/auth');
 
 router.post('/login',control.login);
 
@@ -23,5 +23,7 @@ router.put('/updepi/:uid',auth,epi.updatepi);
 router.delete('/delepi/:uid',auth,epi.deletepi);
 
 router.get('/getepi/:uid',auth,epi.getepi);
+
+router.get('/uploads/:fname',control.getimg);
 
 module.exports = router;

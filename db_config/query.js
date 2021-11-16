@@ -1,4 +1,5 @@
 const mysql = require('mysql');
+require('dotenv').config();
 
 var con = mysql.createConnection({
     host: process.env.HOST,
@@ -6,6 +7,7 @@ var con = mysql.createConnection({
     password: process.env.PASSWORD,
     database: "the_show"
 });
+
 
 function db_qry() {
 

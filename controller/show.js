@@ -1,7 +1,8 @@
 const db_qry = require('../db_config/query');
-const _ = require('underscore');
+const _      = require('underscore');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const jwt    = require('jsonwebtoken');
+const fs     = require('fs');
 
 function controller() {
 
@@ -32,7 +33,7 @@ function controller() {
             });
         }
     }
-    
+
     this.signup = (req, res) => {
         let bdata = req.body;
         if (_.isEmpty(bdata.name) || _.isEmpty(bdata.address) || _.isEmpty(bdata.email) || _.isEmpty(bdata.password)) {
@@ -60,24 +61,40 @@ function controller() {
             });
         }
     }
-    
-    
+
+
     this.newshow = (req, res) => {
         let bdata = req.body;
         bdata.user_id = req.uid;
         db_qry.findshowbyname_uid(bdata.name, bdata.user_id, (err, resu) => {
             if (!err) {
                 if (_.isEmpty(resu)) {
-                    if (_.isEmpty(bdata.r_date) || _.isEmpty(bdata.episodes) || _.isEmpty(bdata.name)) {
+                    if (_.isEmpty(bdata.r_date) || _.isEmpty(bdata.episodes) || _.isEmpty(bdata.name) || _.isEmpty(bdata.profile)) {
                         res.send({ status: false, message: "Plz,Enter All Details" });
                     } else {
-                        db_qry.insert2(bdata, (err, result) => {
-                            if (!err) {
-                                res.send({ status: true, message: "Show Created..." });
-                            } else {
-                                throw err;
-                            }
+                        let image = Buffer.from(bdata.profile, 'base64');
+                        let writepath = 'uploads/profile_' + Date.now() + '.jpg'
+                        fs.writeFile(writepath, image, (err, ans) => {
+                            if (err) throw err;
+                            bdata.profile = writepath;
+                            db_qry.insert2(bdata, (err, result) => {
+                                if (!err) {
+                                    if (result.affectedRows == 0) {
+                                        fs.unlink(bdata.profile, (err) => {
+                                            if (err) throw err;
+                                        });
+                                    } else {
+                                        res.send({ status: true, message: "Show Created..." });
+                                    }
+                                } else {
+                                    fs.unlink(bdata.profile, (err) => {
+                                        if (err) throw err;
+                                    });
+                                    throw err;
+                                }
+                            });
                         });
+
                     }
                 } else {
                     res.send({ status: false, message: "This Show Is Already Created By You." });
@@ -85,8 +102,7 @@ function controller() {
             } else {
                 throw err;
             }
-        })
-
+        });
 
     }
 
@@ -100,20 +116,52 @@ function controller() {
                 if (!err) {
                     if (!_.isEmpty(data)) {
                         if (req.uid == data[0].user_id) {
-                            let upobj = {
-                                name: bdata && bdata.name ? bdata.name : data[0].name,
-                                r_date: bdata && bdata.r_date ? bdata.r_date : data[0].r_date,
-                                user_id: data[0].user_id,
-                                episodes: bdata && bdata.episodes ? bdata.episodes : data[0].episodes
-                            }
-                            db_qry.update(upobj, data[0].id, (err, re) => {
-                                if (!err) {
-                                    res.send({ status: true, message: "Show Was Updated.." });
-                                } else {
-                                    throw err;
+                            if (bdata.profile) {
+                                let image = bdata.profile.split(';base64,').pop();
+                                let writepath = 'uploads/profile_' + Date.now() + '.jpg';
+                                fs.writeFile(writepath, image, { encoding: 'base64' }, (err, ans) => {
+                                    if (err) throw err;
+                                    bdata.profile = writepath;
+                                    let upobj = {
+                                        name: bdata && bdata.name ? bdata.name : data[0].name,
+                                        r_date: bdata && bdata.r_date ? bdata.r_date : data[0].r_date,
+                                        user_id: data[0].user_id,
+                                        episodes: bdata && bdata.episodes ? bdata.episodes : data[0].episodes,
+                                        profile: bdata && bdata.profile ? bdata.profile : data[0].profile
+                                    }
+                                    db_qry.update(upobj, data[0].id, (err, re) => {
+                                        if (!err) {
+                                            if (re.affectedRows == 0) {
+                                                fs.unlink(bdata.profile, (err, result) => {
+                                                    if (err) throw err;
+                                                });
+                                            } else {
+                                                fs.unlink(data[0].profile, (err) => {
+                                                    if (err) throw err;
+                                                });
+                                            }
+                                            res.send({ status: true, message: "Show Was Updated.." });
+                                        } else {
+                                            throw err;
+                                        }
+                                    });
+                                });
+                            } else {
+                                let upobj = {
+                                    name: bdata && bdata.name ? bdata.name : data[0].name,
+                                    r_date: bdata && bdata.r_date ? bdata.r_date : data[0].r_date,
+                                    user_id: data[0].user_id,
+                                    episodes: bdata && bdata.episodes ? bdata.episodes : data[0].episodes,
+                                    profile: bdata && bdata.profile ? bdata.profile : data[0].profile
                                 }
-                            });
-
+                                db_qry.update(upobj, data[0].id, (err, re) => {
+                                    if (!err) {
+                                        res.send({ status: true, message: "Show Was Updated.." });
+                                    } else {
+                                        throw err;
+                                    }
+                                });
+                            }
                         } else {
                             res.send({ status: false, message: "No Show Found." });
                         }
@@ -159,7 +207,7 @@ function controller() {
 
     this.getshow = (req, res) => {
         let pgno = req.query.pgno;
-        
+
         if (_.isNull(pgno) || _.isEmpty(pgno)) {
             pgno = 1;
         }
@@ -184,6 +232,18 @@ function controller() {
             }
         });
 
+    }
+
+    this.getimg = (req, res) => {
+        let filename = req.originalUrl;
+        fs.readFile('D:/The_Show/' + filename, (err, data) => {
+            if (err) {
+                throw err;
+            } else {
+                //do not make res.send() here res.end() is ok here.
+                res.end(data);
+            }
+        });
     }
 }
 module.exports = new controller();
