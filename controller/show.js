@@ -72,9 +72,9 @@ function controller() {
                     if (_.isEmpty(bdata.r_date) || _.isEmpty(bdata.episodes) || _.isEmpty(bdata.name) || _.isEmpty(bdata.profile)) {
                         res.send({ status: false, message: "Plz,Enter All Details" });
                     } else {
-                        let image = Buffer.from(bdata.profile, 'base64');
+                        let image = bdata.profile.split(';base64,').pop();
                         let writepath = 'uploads/profile_' + Date.now() + '.jpg'
-                        fs.writeFile(writepath, image, (err, ans) => {
+                        fs.writeFile(writepath, image, { encoding: 'base64' } ,(err, ans) => {
                             if (err) throw err;
                             bdata.profile = writepath;
                             db_qry.insert2(bdata, (err, result) => {
@@ -108,7 +108,7 @@ function controller() {
 
     this.updateshow = (req, res) => {
         let bdata = req.body;
-        let sid = req.query.sid;
+        let sid = req.params.sid;
         if (_.isEmpty(sid)) {
             res.send({ status: false, message: "Plz,Enter Show Id To Update" });
         } else {
@@ -176,7 +176,7 @@ function controller() {
     }
 
     this.deleteshow = (req, res) => {
-        let bdata = req.query;
+        let bdata = req.params;
         if (_.isEmpty(bdata.sid)) {
             res.send({ status: false, message: "Plz,Enter Show Id To Delete Show.." });
         } else {
@@ -186,6 +186,9 @@ function controller() {
                         if (req.uid == result[0].user_id) {
                             db_qry.delete(bdata.sid, (err, ans) => {
                                 if (!err) {
+                                    fs.unlink(result[0].profile,(err)=>{
+                                        if(err) throw err;
+                                    });
                                     res.send({ status: true, message: "Show Was Deleted.." });
                                 } else {
                                     throw err;
@@ -206,7 +209,7 @@ function controller() {
     }
 
     this.getshow = (req, res) => {
-        let pgno = req.query.pgno;
+        let pgno = req.params.pgno;
 
         if (_.isNull(pgno) || _.isEmpty(pgno)) {
             pgno = 1;

@@ -8,21 +8,21 @@ router.post('/login',control.login);
 
 router.post('/signup',control.signup);
 
-router.post('/newshow/:uid',auth,control.newshow);
+router.post('/show/create',auth,control.newshow);
 
-router.put('/updshow/:uid',auth,control.updateshow);
+router.put('/show/update/:sid',auth,control.updateshow);
 
-router.delete('/deleteshow/:uid',auth,control.deleteshow);
+router.delete('/show/delete/:sid',auth,control.deleteshow);
 
-router.get('/getshow/:uid',auth,control.getshow);
+router.get('/show/get/:pgno',auth,control.getshow);
 
-router.post('/newepi/:uid',auth,epi.newepi);
+router.post('/episode/create/:sid',auth,epi.newepi);
 
-router.put('/updepi/:uid',auth,epi.updatepi);
+router.put('/episode/update/:epid/:sid',auth,epi.updatepi);
 
-router.delete('/delepi/:uid',auth,epi.deletepi);
+router.delete('/episode/delete/:epid/:sid',auth,epi.deletepi);
 
-router.get('/getepi/:uid',auth,epi.getepi);
+router.get('/episode/get/:pgno',auth,epi.getepi);
 
 router.get('/uploads/:fname',control.getimg);
 

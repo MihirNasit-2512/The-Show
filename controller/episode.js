@@ -5,8 +5,8 @@ function epi() {
 
     this.newepi = (req, res) => {
         let bdata = req.body;
-        let sid = Number(req.query.sid);
-        if (_.isEmpty(req.query.sid)) {
+        let sid = Number(req.params.sid);
+        if (_.isEmpty(req.params.sid)) {
             res.send({ status: false, message: "Plz,Enter Show Id." });
         } else {
             if (_.isEmpty(bdata.name) || _.isEmpty(bdata.r_date) || _.isEmpty(bdata.season) || _.isEmpty(bdata.channel)) {
@@ -17,7 +17,6 @@ function epi() {
                         if (req.uid === resu[0].user_id) {
                             bdata.user_id = resu[0].user_id;
                             bdata.show_id = resu[0].id
-                            console.log(bdata);
                             db_qry.findepi(resu[0].id, bdata.season, (err, result) => {
                                 if (!err) {
                                     if (_.isEmpty(result)) {
@@ -34,7 +33,7 @@ function epi() {
                                 }
                             });
                         } else {
-                            res.send({ status: false, message: "You Can Not Create Episode For This Show." });
+                            res.send({ status: false, message: "Episode Not Found" });
                         }
                     } else {
                         throw err;
@@ -46,7 +45,7 @@ function epi() {
 
     this.updatepi = (req, res) => {
         let bdata = req.body;
-        let id = req.query;
+        let id = req.params;
         if (_.isEmpty(id.epid)) {
             res.send({ status: false, message: "Plz,Enter Episode Id to Update" })
         } else {
@@ -79,7 +78,7 @@ function epi() {
     }
 
     this.deletepi = (req, res) => {
-        let id = req.query;
+        let id = req.params;
         db_qry.deletepi_epid_sid_uid(id.epid, id.sid, req.uid, (err, result) => {
             if (!err) {
                 if (result.affectedRows == 1) {
@@ -94,7 +93,7 @@ function epi() {
     }
 
     this.getepi = (req, res) => {
-        let pgno = req.query.pgno;
+        let pgno = req.params.pgno;
         if (_.isEmpty(pgno)||_.isNull(pgno)) {
             pgno = 1;
         }

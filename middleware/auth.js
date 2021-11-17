@@ -4,14 +4,14 @@ const _   = require('underscore');
 require("dotenv").config();
 
 module.exports = (req, res, next) => {
-    if (!_.isEmpty(req.headers.authorization) || !_.isEmpty(req.params.uid)) {
+    if (!_.isEmpty(req.headers.authorization)) {
         let token = req.headers.authorization;
         let decoded = jwt.verify(token, process.env.PRIVATE_KEY);
-        if (req.params.uid == decoded.id) {
+        if (decoded) {
             req.uid = decoded.id;
             next();
         } else {
-            throw 'Invalid UserId.'
+            throw 'Something Went Wrong.'
         }
     } else {
         res.send({ status: false, message: "Plz,Provide Token." });
