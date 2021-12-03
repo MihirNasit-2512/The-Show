@@ -1,8 +1,8 @@
 const db_qry = require('../db_config/query');
-const _      = require('underscore');
+const _ = require('underscore');
 const bcrypt = require('bcrypt');
-const jwt    = require('jsonwebtoken');
-const fs     = require('fs');
+const jwt = require('jsonwebtoken');
+const fs = require('fs');
 
 function controller() {
 
@@ -72,12 +72,15 @@ function controller() {
                     if (_.isEmpty(bdata.r_date) || _.isEmpty(bdata.episodes) || _.isEmpty(bdata.name) || _.isEmpty(bdata.profile)) {
                         res.send({ status: false, message: "Plz,Enter All Details" });
                     } else {
+                        bdata.temp = JSON.stringify(bdata.temp);
                         let image = bdata.profile.split(';base64,').pop();
                         let writepath = 'uploads/profile_' + Date.now() + '.jpg'
-                        fs.writeFile(writepath, image, { encoding: 'base64' } ,(err, ans) => {
+                        fs.writeFile(writepath, image, { encoding: 'base64' }, (err, ans) => {
                             if (err) throw err;
                             bdata.profile = writepath;
                             db_qry.insert2(bdata, (err, result) => {
+                                console.log(result);
+                                console.log(err);
                                 if (!err) {
                                     if (result.affectedRows == 0) {
                                         fs.unlink(bdata.profile, (err) => {
@@ -122,41 +125,67 @@ function controller() {
                                 fs.writeFile(writepath, image, { encoding: 'base64' }, (err, ans) => {
                                     if (err) throw err;
                                     bdata.profile = writepath;
-                                    let upobj = {
-                                        name: bdata && bdata.name ? bdata.name : data[0].name,
-                                        r_date: bdata && bdata.r_date ? bdata.r_date : data[0].r_date,
-                                        user_id: data[0].user_id,
-                                        episodes: bdata && bdata.episodes ? bdata.episodes : data[0].episodes,
-                                        profile: bdata && bdata.profile ? bdata.profile : data[0].profile
-                                    }
-                                    db_qry.update(upobj, data[0].id, (err, re) => {
+                                    let kp = [];
+                                    _.mapObject(bdata, (item, key) => {
+                                        k = `${key}='${item}'`;
+                                        kp.push(k);
+                                    });
+                                    // let upobj = {
+                                    //     name: bdata && bdata.name ? bdata.name : data[0].name,
+                                    //     r_date: bdata && bdata.r_date ? bdata.r_date : data[0].r_date,
+                                    //     user_id: data[0].user_id,
+                                    //     episodes: bdata && bdata.episodes ? bdata.episodes : data[0].episodes,
+                                    //     profile: bdata && bdata.profile ? bdata.profile : data[0].profile,
+                                    // }
+                                    db_qry.update(kp, data[0].id, (err, re) => {
                                         if (!err) {
-                                            if (re.affectedRows == 0) {
-                                                fs.unlink(bdata.profile, (err, result) => {
-                                                    if (err) throw err;
-                                                });
-                                            } else {
-                                                fs.unlink(data[0].profile, (err) => {
-                                                    if (err) throw err;
-                                                });
+                                            if(re==false){
+                                            res.send({ status: false, message: "Invalid Fields.." });
+                                            }else{
+                                                if (re.affectedRows == 0) {
+                                                    fs.unlink(bdata.profile, (err, result) => {
+                                                        if (err) throw err;
+                                                    });
+                                                } else {
+                                                    fs.unlink(data[0].profile, (err) => {
+                                                        if (err) throw err;
+                                                    });
+                                                }
+                                                res.send({ status: true, message: "Show Was Updated.." });
                                             }
-                                            res.send({ status: true, message: "Show Was Updated.." });
                                         } else {
                                             throw err;
                                         }
                                     });
                                 });
                             } else {
-                                let upobj = {
-                                    name: bdata && bdata.name ? bdata.name : data[0].name,
-                                    r_date: bdata && bdata.r_date ? bdata.r_date : data[0].r_date,
-                                    user_id: data[0].user_id,
-                                    episodes: bdata && bdata.episodes ? bdata.episodes : data[0].episodes,
-                                    profile: bdata && bdata.profile ? bdata.profile : data[0].profile
-                                }
-                                db_qry.update(upobj, data[0].id, (err, re) => {
+                                let kp = [];
+                                _.mapObject(bdata, (item, key) => {
+                                    k = `${key}='${item}'`;
+                                    kp.push(k);
+                                });
+
+                                // kp.map((item,index)=>{
+                                //     if(index < length -1){
+                                //         item += ","
+                                //     }
+                                //     column+=item;            
+                                // });
+                                // let upobj = {
+                                //     name: bdata && bdata.name ? bdata.name : data[0].name,
+                                //     r_date: bdata && bdata.r_date ? bdata.r_date : data[0].r_date,
+                                //     user_id: data[0].user_id,
+                                //     episodes: bdata && bdata.episodes ? bdata.episodes : data[0].episodes,
+                                //     profile: data[0].profile,
+                                // }
+                                // console.log(upobj);
+                                db_qry.update(kp, data[0].id, (err, re) => {
                                     if (!err) {
-                                        res.send({ status: true, message: "Show Was Updated.." });
+                                        if (re == false) {
+                                            res.send({ status: false, message: "Invalid Fields.." });
+                                        } else {
+                                            res.send({ status: true, message: "Show Was Updated.." });
+                                        }
                                     } else {
                                         throw err;
                                     }
@@ -186,8 +215,8 @@ function controller() {
                         if (req.uid == result[0].user_id) {
                             db_qry.delete(bdata.sid, (err, ans) => {
                                 if (!err) {
-                                    fs.unlink(result[0].profile,(err)=>{
-                                        if(err) throw err;
+                                    fs.unlink(result[0].profile, (err) => {
+                                        if (err) throw err;
                                     });
                                     res.send({ status: true, message: "Show Was Deleted.." });
                                 } else {

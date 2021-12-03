@@ -22,7 +22,7 @@ function db_qry() {
         })
     }
 
-    this.insert2 = (bdata,cb) =>{
+    this.insert2 = (bdata, cb) => {
         let sql = "insert into `show` set ?";
         con.query(sql, [bdata], (err, result) => {
             if (!err) {
@@ -33,7 +33,7 @@ function db_qry() {
         })
     }
 
-    this.insertnewepi = (bdata,cb) =>{
+    this.insertnewepi = (bdata, cb) => {
         let sql = "insert into `episodes` set ?";
         con.query(sql, [bdata], (err, result) => {
             if (!err) {
@@ -42,7 +42,7 @@ function db_qry() {
                 cb(null, err)
             }
         })
-    }    
+    }
 
     this.findfshow = (bdata, cb) => {
 
@@ -80,32 +80,32 @@ function db_qry() {
         })
     }
 
-    this.findshowbyname_uid = (bdata,id,cb)=>{
+    this.findshowbyname_uid = (bdata, id, cb) => {
         let sql = "select * from `show` where name=? and user_id=?";
-        con.query(sql,[bdata,id],(err,result)=>{
-            if(!err){
-                cb(null,result);
-            }else{
-                cb(null,err);
+        con.query(sql, [bdata, id], (err, result) => {
+            if (!err) {
+                cb(null, result);
+            } else {
+                cb(null, err);
             }
         });
     }
 
-    this.findshow_limit = (bdata,skip,cb)=>{
+    this.findshow_limit = (bdata, skip, cb) => {
         let sql = "select * from `show` where user_id=? limit ?,2";
-        con.query(sql,[bdata,skip],(err,result)=>{
-            if(!err){
-                cb(null,result);
-            }else{
-                cb(null,err);
+        con.query(sql, [bdata, skip], (err, result) => {
+            if (!err) {
+                cb(null, result);
+            } else {
+                cb(null, err);
             }
         });
     }
 
-    this.findepi = (bdata,season, cb) => {
+    this.findepi = (bdata, season, cb) => {
 
         let sql = "select * from `episodes` where show_id=? and season=?";
-        con.query(sql, [bdata,season], (err, result) => {
+        con.query(sql, [bdata, season], (err, result) => {
             if (!err) {
                 cb(null, result);
             } else {
@@ -114,9 +114,9 @@ function db_qry() {
         })
     }
 
-    this.findepiuid_shid = (shid,epid,cb)=>{
+    this.findepiuid_shid = (shid, epid, cb) => {
         let sql = "select * from `episodes` where show_id=? and id=?";
-        con.query(sql, [shid,epid], (err, result) => {
+        con.query(sql, [shid, epid], (err, result) => {
             if (!err) {
                 cb(null, result);
             } else {
@@ -125,57 +125,57 @@ function db_qry() {
         })
     }
 
-    this.update = (upobj,id,cb)=>{
-        let sql ="update `show` set ? where id=?";
-        con.query(sql,[upobj,id],(err,result)=>{
-            console.log(result);
-            if(!err){
-                cb(null,result);
-            }else{
-                cb(null,err)
+    this.update = (upobj, id, cb) => {
+        let sql = `update the_show.show set ${upobj} where id = ${id}`
+      
+        con.query(sql,(err, result) => {
+            if (!err) {
+                cb(null, result);
+            } else {
+                console.log(err);
+                cb(null, false)
             }
         });
     }
 
-    this.updatepi = (upobj,id,cb)=>{
-        let sql ="update `episodes` set ? where id=?";
-        con.query(sql,[upobj,id],(err,result)=>{
-            console.log(result);
-            if(!err){
-                cb(null,result);
-            }else{
-                cb(null,err)
+    this.updatepi = (upobj, id, cb) => {
+        let sql = "update `episodes` set ? where id=?";
+        con.query(sql, [upobj, id], (err, result) => {
+            if (!err) {
+                cb(null, result);
+            } else {
+                cb(null, err)
             }
         });
     }
 
-    this.delete = (bdata,cb)=>{
+    this.delete = (bdata, cb) => {
         let sql = "delete from `show` where id=?";
-        con.query(sql,[bdata],(err,result)=>{
-            if(!err){
-                cb(null,result);
-            }else{
-                cb(null,err)
+        con.query(sql, [bdata], (err, result) => {
+            if (!err) {
+                cb(null, result);
+            } else {
+                cb(null, err)
             }
         });
     }
 
-    this.deletepi_epid_sid_uid = (epid,sid,uid,cb)=>{
+    this.deletepi_epid_sid_uid = (epid, sid, uid, cb) => {
         let sql = "delete from `episodes` where id=? and show_id=? and user_id=?";
-        con.query(sql,[epid,sid,uid],(err,result)=>{
-            if(!err){
-                cb(null,result);
-            }else{
-                cb(null,err)
+        con.query(sql, [epid, sid, uid], (err, result) => {
+            if (!err) {
+                cb(null, result);
+            } else {
+                cb(null, err)
             }
         });
     }
 
 
-    this.findfepi = (uid, skip,cb) => {
+    this.findfepi = (uid, skip, cb) => {
 
         let sql = "select * from `episodes` where user_id=? limit ?,2";
-        con.query(sql, [uid,skip], (err, result) => {
+        con.query(sql, [uid, skip], (err, result) => {
             if (!err) {
                 cb(null, result);
             } else {
